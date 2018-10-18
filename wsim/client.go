@@ -1,11 +1,8 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package websocket
+package wsim
 
 import (
 	"bufio"
+	"crypto/tls"
 	"io"
 	"net"
 	"net/http"
@@ -86,14 +83,20 @@ func DialConfig(config *Config) (ws *Conn, err error) {
 	if config.Origin == nil {
 		return nil, &DialError{config, ErrBadWebSocketOrigin}
 	}
-	dialer := config.Dialer
-	if dialer == nil {
-		dialer = &net.Dialer{}
+	switch config.Location.Scheme {
+	case "ws":
+		client, err = net.Dial("tcp", parseAuthority(config.Location))
+
+	case "wss":
+		client, err = tls.Dial("tcp", parseAuthority(config.Location), config.TlsConfig)
+
+	default:
+		err = ErrBadScheme
 	}
-	client, err = dialWithDialer(dialer, config)
 	if err != nil {
 		goto Error
 	}
+
 	ws, err = NewClient(config, client)
 	if err != nil {
 		client.Close()

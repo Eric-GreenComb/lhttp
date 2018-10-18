@@ -1,0 +1,43 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "+WvAFQYdExJNUjKDAtuSs8O7ELg=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "76e4896901ef89d253d69b528d3701dd146fe2ae",
+			"revisionTime": "2018-10-12T02:01:31Z"
+		},
+		{
+			"checksumSHA1": "exuXN1l+vocrZ4RwRwCJ1ZXtq4I=",
+			"path": "github.com/nats-io/nats",
+			"revision": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d",
+			"revisionTime": "2016-10-26T23:32:37Z"
+		},
+		{
+			"checksumSHA1": "qAIuHdtQrDi2fFmpaP1dZLbgpGc=",
+			"path": "github.com/nats-io/nats/encoders/builtin",
+			"revision": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d",
+			"revisionTime": "2016-10-26T23:32:37Z"
+		},
+		{
+			"checksumSHA1": "swgc2BZ6aF81hwe6FXN7rBieAK4=",
+			"path": "github.com/nats-io/nats/util",
+			"revision": "61923ed1eaf8398000991fbbee2ef11ab5a5be0d",
+			"revisionTime": "2016-10-26T23:32:37Z"
+		},
+		{
+			"checksumSHA1": "i8Yom1KrpDKwjlGH/gpJGAQmo68=",
+			"path": "github.com/nats-io/nuid",
+			"revision": "289cccf02c178dc782430d534e3c1f5b72af807f",
+			"revisionTime": "2016-09-27T04:49:45Z"
+		},
+		{
+			"checksumSHA1": "F+tqxPGFt5x7DKZakbbMmENX1oQ=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "aaf60122140d3fcf75376d319f0554393160eb50",
+			"revisionTime": "2018-07-13T17:18:40Z"
+		}
+	],
+	"rootPath": "github.com/Eric-GreenComb/lhttp"
+}

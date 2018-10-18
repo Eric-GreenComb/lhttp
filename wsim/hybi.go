@@ -1,8 +1,4 @@
-// Copyright 2011 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package websocket
+package wsim
 
 // This file implements a protocol of hybi draft.
 // http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-17
@@ -81,6 +77,9 @@ type hybiFrameReader struct {
 
 func (frame *hybiFrameReader) Read(msg []byte) (n int, err error) {
 	n, err = frame.reader.Read(msg)
+	if err != nil {
+		return 0, err
+	}
 	if frame.header.MaskingKey != nil {
 		for i := 0; i < n; i++ {
 			msg[i] = msg[i] ^ frame.header.MaskingKey[frame.pos%4]
