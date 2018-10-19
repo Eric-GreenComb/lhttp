@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Eric-GreenComb/lhttp/wsim"
+	"github.com/Eric-GreenComb/ws-im-server/wsim"
 )
 
 //ChatProcessor is
