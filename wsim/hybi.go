@@ -16,26 +16,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
 
-const (
-	websocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-
-	closeStatusNormal            = 1000
-	closeStatusGoingAway         = 1001
-	closeStatusProtocolError     = 1002
-	closeStatusUnsupportedData   = 1003
-	closeStatusFrameTooLarge     = 1004
-	closeStatusNoStatusRcvd      = 1005
-	closeStatusAbnormalClosure   = 1006
-	closeStatusBadMessageData    = 1007
-	closeStatusPolicyViolation   = 1008
-	closeStatusTooBigData        = 1009
-	closeStatusExtensionMismatch = 1010
-
-	maxControlFramePayloadLength = 125
-)
-
+// ErrBadMaskingKey ErrBadMaskingKey
 var (
 	ErrBadMaskingKey         = &ProtocolError{"bad masking key"}
 	ErrBadPongMessage        = &ProtocolError{"bad pong message"}
@@ -267,13 +252,13 @@ func (handler *hybiFrameHandler) HandleFrame(frame frameReader) (frameReader, er
 	if handler.conn.IsServerConn() {
 		// The client MUST mask all frames sent to the server.
 		if frame.(*hybiFrameReader).header.MaskingKey == nil {
-			handler.WriteClose(closeStatusProtocolError)
+			handler.WriteClose(types.CloseStatusProtocolError)
 			return nil, io.EOF
 		}
 	} else {
 		// The server MUST NOT mask all frames.
 		if frame.(*hybiFrameReader).header.MaskingKey != nil {
-			handler.WriteClose(closeStatusProtocolError)
+			handler.WriteClose(types.CloseStatusProtocolError)
 			return nil, io.EOF
 		}
 	}
@@ -288,7 +273,7 @@ func (handler *hybiFrameHandler) HandleFrame(frame frameReader) (frameReader, er
 	case CloseFrame:
 		return nil, io.EOF
 	case PingFrame, PongFrame:
-		b := make([]byte, maxControlFramePayloadLength)
+		b := make([]byte, types.MaxControlFramePayloadLength)
 		n, err := io.ReadFull(frame, b)
 		if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
 			return nil, err
@@ -342,7 +327,7 @@ func newHybiConn(config *Config, buf *bufio.ReadWriter, rwc io.ReadWriteCloser, 
 		frameWriterFactory: hybiFrameWriterFactory{
 			buf.Writer, request == nil},
 		PayloadType:        TextFrame,
-		defaultCloseStatus: closeStatusNormal}
+		defaultCloseStatus: types.CloseStatusNormal}
 	ws.frameHandler = &hybiFrameHandler{conn: ws}
 	return ws
 }
@@ -392,7 +377,7 @@ func getNonceAccept(nonce []byte) (expected []byte, err error) {
 	if _, err = h.Write(nonce); err != nil {
 		return
 	}
-	if _, err = h.Write([]byte(websocketGUID)); err != nil {
+	if _, err = h.Write([]byte(types.WSGUID)); err != nil {
 		return
 	}
 	expected = make([]byte, 28)

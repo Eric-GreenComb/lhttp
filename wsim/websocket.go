@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// ProtocolVersionHybi13 ProtocolVersionHybi13
 const (
 	// ProtocolVersionHybi13
 	ProtocolVersionHybi13 = 13
@@ -45,6 +46,7 @@ type ProtocolError struct {
 
 func (err *ProtocolError) Error() string { return err.ErrorString }
 
+// ErrBadProtocolVersion ErrBadProtocolVersion
 var (
 	// ErrBadProtocolVersion
 	ErrBadProtocolVersion   = &ProtocolError{"bad protocol version"}
@@ -85,8 +87,8 @@ type Config struct {
 	// WebSocket protocol version.
 	Version int
 
-	// TLS config for secure WebSocket (wss).
-	TlsConfig *tls.Config
+	// TLSConfig TLS config for secure WebSocket (wss).
+	TLSConfig *tls.Config
 
 	// Additional header fields to be sent in WebSocket opening handshake.
 	Header http.Header
@@ -228,10 +230,10 @@ func (ws *Conn) Close() error {
 	return err1
 }
 
-// IsClientConn
+// IsClientConn IsClientConn
 func (ws *Conn) IsClientConn() bool { return ws.request == nil }
 
-// IsServerConn
+// IsServerConn TLSConfig
 func (ws *Conn) IsServerConn() bool { return ws.request != nil }
 
 // LocalAddr returns the WebSocket Origin for the connection for client, or

@@ -4,24 +4,30 @@ import (
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
 
-type multipartBlock struct {
+// MultipartBlock MultipartBlock
+type MultipartBlock struct {
 	headers map[string]string
 	body    string
 
-	nextBlock *multipartBlock
+	nextBlock *MultipartBlock
 }
 
-func (m *multipartBlock) GetNext() *multipartBlock {
+// GetNext GetNext
+func (m *MultipartBlock) GetNext() *MultipartBlock {
 	return m.nextBlock
 }
 
-func (m *multipartBlock) GetBody() string {
+// GetBody GetBody
+func (m *MultipartBlock) GetBody() string {
 	return m.body
 }
 
-func (m *multipartBlock) GetHeaders() map[string]string {
+// GetHeaders GetHeaders
+func (m *MultipartBlock) GetHeaders() map[string]string {
 	return m.headers
 }
 
@@ -43,9 +49,9 @@ func splitsString(pos []int, s string) (strs []string) {
 	log.Print("splits murltiple body: ", strs)
 	return
 }
-func initBlock(s string, m *multipartBlock) {
+func initBlock(s string, m *MultipartBlock) {
 	log.Print("block is: ", s)
-	m.headers = make(map[string]string, headerMax)
+	m.headers = make(map[string]string, types.HeaderMax)
 	//parse message
 
 	//parse hearders
@@ -58,7 +64,7 @@ func initBlock(s string, m *multipartBlock) {
 		if ch == ':' && key == "" {
 			key = headers[k:j]
 			k = j + 1
-		} else if headers[j:j+2] == CRLF {
+		} else if headers[j:j+2] == types.CRLF {
 			value = headers[k:j]
 			k = j + 2
 
@@ -66,7 +72,7 @@ func initBlock(s string, m *multipartBlock) {
 			log.Print("parse block head key:", key, " block value:", value)
 			key = ""
 		}
-		if headers[k:k+2] == CRLF {
+		if headers[k:k+2] == types.CRLF {
 			k += 2
 			break
 		}
@@ -83,7 +89,7 @@ func (*multipartFilter) BeforeRequestFilterHandle(ws *WsHandler) {
 
 	var posInts []int
 	posInts = make([]int, 0)
-	if value = ws.GetHeader(HEADER_KEY_MULTIPART); value == "" {
+	if value = ws.GetHeader(types.HeaderKeyMultipart); value == "" {
 		log.Print("no multipart header found")
 		return
 	}
@@ -101,12 +107,12 @@ func (*multipartFilter) BeforeRequestFilterHandle(ws *WsHandler) {
 
 	bloks := splitsString(posInts, ws.GetBody())
 
-	ws.multiparts = &multipartBlock{}
+	ws.multiparts = &MultipartBlock{}
 	current := ws.multiparts
 	initBlock(bloks[0], current)
 
 	for _, block := range bloks[1:] {
-		m := &multipartBlock{}
+		m := &MultipartBlock{}
 		current.nextBlock = m
 		current = m
 		initBlock(block, current)

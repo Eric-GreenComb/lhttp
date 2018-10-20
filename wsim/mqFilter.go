@@ -3,6 +3,9 @@ package wsim
 import (
 	"log"
 	"strings"
+
+	"github.com/Eric-GreenComb/ws-im-server/mq"
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
 
 //if client send message include subscribe/publish/unsubscribe header
@@ -15,11 +18,11 @@ func (*mqHeadFilter) AfterRequestFilterHandle(ws *WsHandler) {
 	var value string
 	var channels []string
 
-	if value = ws.GetHeader(HEADER_KEY_SUBSCRIBE); value != "" {
+	if value = ws.GetHeader(types.HeaderKeySubscribe); value != "" {
 		channels = strings.Split(value, " ")
 		for _, c := range channels {
-			if conn, err := mq.Subscribe(c, ws.subscribeCallback); nil == err {
-				ws.subscribe_nats_conn[c] = conn
+			if conn, err := mq.MQD.Subscribe(c, ws.subscribeCallback); nil == err {
+				ws.SubscribeNatsConn[c] = conn
 			} else {
 				log.Println("Subscribe Error", err)
 			}
@@ -27,20 +30,20 @@ func (*mqHeadFilter) AfterRequestFilterHandle(ws *WsHandler) {
 		}
 	}
 
-	if value = ws.GetHeader(HEADER_KEY_PUBLISH); value != "" {
+	if value = ws.GetHeader(types.HeaderKeyPublish); value != "" {
 		channels = strings.Split(value, " ")
 		for _, c := range channels {
 			ws.setResponse()
 			ws.resp.serializeMessage()
-			mq.Publish(c, ws.resp.message)
+			mq.MQD.Publish(c, ws.resp.message)
 			// log.Print("publish channel: ", c, "message:", ws.resp.message)
 		}
 	}
 
-	if value = ws.GetHeader(HEADER_KEY_UNSUBSCRIBE); value != "" {
+	if value = ws.GetHeader(types.HeaderKeyUnsubscribe); value != "" {
 		channels = strings.Split(value, " ")
 		for _, c := range channels {
-			mq.Unsubscribe(ws.subscribe_nats_conn[c])
+			mq.MQD.Unsubscribe(ws.SubscribeNatsConn[c])
 			log.Print("unsubscribe channel: ", c)
 		}
 	}

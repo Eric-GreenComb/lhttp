@@ -6,39 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nats-io/nats"
+	"github.com/Eric-GreenComb/ws-im-server/mq"
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
-
-type MqHandler interface{}
-
-type Mq struct {
-	conn *nats.EncodedConn
-}
-
-func (mq *Mq) Publish(key string, v MqHandler) error {
-	return mq.conn.Publish(key, v)
-}
-
-func (mq *Mq) Subscribe(key string, v MqHandler) (*nats.Subscription, error) {
-	return mq.conn.Subscribe(key, v)
-}
-
-/*
-func (mq *Mq) Unsubscribe(sub *nats.Subscription) error {
-	return sub.Unsubscribe()
-}
-*/
-
-func (mq *Mq) Unsubscribe(handle interface{}) error {
-	c := handle.(*nats.Subscription)
-	return c.Unsubscribe()
-}
-
-var mq Mq
-
-func NewMq() *Mq {
-	return &mq
-}
 
 type httpPublisher struct{}
 
@@ -53,27 +23,20 @@ func (*httpPublisher) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	message := buildMessage(bodyStr)
 
-	channels, ok := message.headers[HEADER_KEY_PUBLISH]
+	channels, ok := message.headers[types.HeaderKeyPublish]
 	if !ok {
 		log.Print("cant get Publish header")
 		return
 	}
 
 	for _, c := range strings.Split(channels, " ") {
-		mq.Publish(c, bodyStr)
+		mq.MQD.Publish(c, bodyStr)
 	}
 
 	req.Body.Close()
 }
 
 func init() {
-	nc, _ := nats.Connect(nats.DefaultURL)
-	c, err := nats.NewEncodedConn(nc, nats.DEFAULT_ENCODER)
-	if err != nil {
-		log.Print("mq init error")
-	} else {
-		mq.conn = c
-	}
 
 	//handle http publish message
 	http.Handle("/publish", &httpPublisher{})

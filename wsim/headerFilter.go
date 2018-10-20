@@ -1,5 +1,6 @@
-// you can define your handle to processing your private header before or after process message
 package wsim
+
+// you can define your handle to processing your private header before or after process message
 
 import (
 	"container/list"
@@ -13,6 +14,7 @@ var (
 	onCloseFilterList       *list.List
 )
 
+// HeadFilterHandler HeadFilterHandler
 type HeadFilterHandler interface {
 	OnOpenFilterHandle(*WsHandler)
 	BeforeRequestFilterHandle(*WsHandler)
@@ -27,24 +29,30 @@ type YourFilter struct {
 }
 */
 
+// HeadFilterBase HeadFilterBase
 type HeadFilterBase struct{}
 
+// BeforeRequestFilterHandle BeforeRequestFilterHandle
 func (*HeadFilterBase) BeforeRequestFilterHandle(ws *WsHandler) {
 	// log.Print("head base filter before request")
 }
 
+// AfterRequestFilterHandle AfterRequestFilterHandle
 func (*HeadFilterBase) AfterRequestFilterHandle(ws *WsHandler) {
 	// log.Print("head base filter after request")
 }
 
+// OnOpenFilterHandle OnOpenFilterHandle
 func (*HeadFilterBase) OnOpenFilterHandle(ws *WsHandler) {
 	// log.Print("head base filter on open")
 }
 
+// OnCloseFilterHandle OnCloseFilterHandle
 func (*HeadFilterBase) OnCloseFilterHandle(ws *WsHandler) {
 	// log.Print("head base filter on close")
 }
 
+// RegistHeadFilter RegistHeadFilter
 func RegistHeadFilter(h HeadFilterHandler) {
 	onOpenFilterList.PushBack(h)
 	beforeRequestFilterList.PushBack(h)

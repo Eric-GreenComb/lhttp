@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
 
 type upstreamHeadFilter struct {
@@ -14,7 +16,7 @@ type upstreamHeadFilter struct {
 
 func (*upstreamHeadFilter) AfterRequestFilterHandle(ws *WsHandler) {
 	var value string
-	if value = ws.GetHeader(HEADER_KEY_UPSTREAM); value == "" {
+	if value = ws.GetHeader(types.HeaderKeyUpstream); value == "" {
 		log.Print("no upstream header found:", ws.message.message, ws.message.headers)
 		return
 	}
@@ -33,8 +35,8 @@ func (*upstreamHeadFilter) AfterRequestFilterHandle(ws *WsHandler) {
 	var req *http.Request
 	var err error
 
-	if values[0] == UPSTREAM_HTTP_METHOD_GET {
-		req, err = http.NewRequest(UPSTREAM_HTTP_METHOD_GET, ws.upstreamURL.String(), nil)
+	if values[0] == types.UpstreamHTTPMethodGET {
+		req, err = http.NewRequest(types.UpstreamHTTPMethodGET, ws.upstreamURL.String(), nil)
 		if err != nil {
 			_ = req
 			return
@@ -52,6 +54,9 @@ func (*upstreamHeadFilter) AfterRequestFilterHandle(ws *WsHandler) {
 	}
 
 	resp, err := httpClient.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

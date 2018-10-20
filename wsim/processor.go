@@ -1,7 +1,12 @@
 package wsim
 
+import (
+	"github.com/Eric-GreenComb/ws-im-server/types"
+)
+
 var processorMap map[string]HandlerCallbacks
 
+// Regist Regist
 func Regist(command string, p HandlerCallbacks) {
 	processorMap[command] = p
 	//log.Print("regist processor", p)
@@ -12,11 +17,10 @@ func getProcessor(command string) HandlerCallbacks {
 	p, ok := processorMap[command]
 	if ok {
 		return p
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func init() {
-	processorMap = make(map[string]HandlerCallbacks, ProcessorMax)
+	processorMap = make(map[string]HandlerCallbacks, types.ProcessorMax)
 }

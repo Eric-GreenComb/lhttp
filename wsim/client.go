@@ -49,8 +49,8 @@ func NewClient(config *Config, rwc io.ReadWriteCloser) (ws *Conn, err error) {
 }
 
 // Dial opens a new client connection to a WebSocket.
-func Dial(url_, protocol, origin string) (ws *Conn, err error) {
-	config, err := NewConfig(url_, origin)
+func Dial(url, protocol, origin string) (ws *Conn, err error) {
+	config, err := NewConfig(url, origin)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func DialConfig(config *Config) (ws *Conn, err error) {
 		client, err = net.Dial("tcp", parseAuthority(config.Location))
 
 	case "wss":
-		client, err = tls.Dial("tcp", parseAuthority(config.Location), config.TlsConfig)
+		client, err = tls.Dial("tcp", parseAuthority(config.Location), config.TLSConfig)
 
 	default:
 		err = ErrBadScheme

@@ -5,8 +5,11 @@ import (
 	// "log"
 	"net/url"
 	"strings"
+
+	"github.com/Eric-GreenComb/ws-im-server/types"
 )
 
+// WsMessage WsMessage
 type WsMessage struct {
 	//message raw data
 	message string
@@ -21,13 +24,13 @@ type WsMessage struct {
 
 //fill message by command headers and body
 func (m *WsMessage) serializeMessage() string {
-	m.message = protocolNameWithVersion + " "
-	m.message += m.command + CRLF
+	m.message = types.ProtocolNameWithVersion + " "
+	m.message += m.command + types.CRLF
 
 	for k, v := range m.headers {
-		m.message += k + ":" + v + CRLF
+		m.message += k + ":" + v + types.CRLF
 	}
-	m.message += CRLF + m.body
+	m.message += types.CRLF + m.body
 
 	return m.message
 }
@@ -37,12 +40,12 @@ func buildMessage(data string) *WsMessage {
 	//TODO optimise ,to use builder pattern
 	s := data
 	message := &WsMessage{message: data}
-	message.headers = make(map[string]string, headerMax)
+	message.headers = make(map[string]string, types.HeaderMax)
 	//parse message
 
 	//parse start line
-	i := strings.Index(s, CRLF)
-	message.command = s[protocolLength+1 : i]
+	i := strings.Index(s, types.CRLF)
+	message.command = s[types.ProtocolLength+1 : i]
 
 	//parse hearders
 	k := 0
@@ -55,7 +58,7 @@ func buildMessage(data string) *WsMessage {
 		if ch == ':' && key == "" {
 			key = headers[k:j]
 			k = j + 1
-		} else if length > j+1 && headers[j:j+2] == CRLF {
+		} else if length > j+1 && headers[j:j+2] == types.CRLF {
 			value = headers[k:j]
 			k = j + 2
 
@@ -63,7 +66,7 @@ func buildMessage(data string) *WsMessage {
 			// log.Print("parse head key:", key, " value:", value)
 			key = ""
 		}
-		if length > k+1 && headers[k:k+2] == CRLF {
+		if length > k+1 && headers[k:k+2] == types.CRLF {
 			k += 2
 			break
 		}
@@ -75,6 +78,7 @@ func buildMessage(data string) *WsMessage {
 	return message
 }
 
+// WsHandler WsHandler
 type WsHandler struct {
 	callbacks HandlerCallbacks
 
@@ -82,7 +86,7 @@ type WsHandler struct {
 	conn *Conn
 
 	// nats conn
-	subscribe_nats_conn map[string]interface{}
+	SubscribeNatsConn map[string]interface{}
 
 	//receive message
 	message *WsMessage
@@ -94,14 +98,15 @@ type WsHandler struct {
 	//connSetID string
 
 	//save multipars datas, it is a list
-	multiparts *multipartBlock
+	multiparts *MultipartBlock
 }
 
 func (req *WsHandler) reset() {
 	req.resp = WsMessage{command: "", headers: nil, body: ""}
 }
 
-func (req *WsHandler) GetMultipart() *multipartBlock {
+// GetMultipart GetMultipart
+func (req *WsHandler) GetMultipart() *MultipartBlock {
 	return req.multiparts
 }
 
@@ -110,32 +115,36 @@ func (req *WsHandler) subscribeCallback(s string) {
 	Message.Send(req.conn, s)
 }
 
+// SetCommand SetCommand
 func (req *WsHandler) SetCommand(s string) {
 	req.resp.command = s
 }
 
+// GetCommand GetCommand
 func (req *WsHandler) GetCommand() string {
 	return req.message.command
 }
 
+// SetHeader SetHeader
 func (req *WsHandler) SetHeader(hkey, hvalue string) {
 	req.message.headers[hkey] = hvalue
 }
 
+// GetHeader GetHeader
 func (req *WsHandler) GetHeader(hkey string) string {
 	if value, ok := req.message.headers[hkey]; ok {
 		return value
-	} else {
-		return ""
 	}
+	return ""
 }
 
-//if header already exist,update it
+// AddHeader if header already exist,update it
 func (req *WsHandler) AddHeader(hkey, hvalue string) {
-	req.resp.headers = make(map[string]string, headerMax)
+	req.resp.headers = make(map[string]string, types.HeaderMax)
 	req.resp.headers[hkey] = hvalue
 }
 
+// GetBody GetBody
 func (req *WsHandler) GetBody() string {
 	return req.message.body
 }
@@ -153,25 +162,25 @@ func (req *WsHandler) setResponse() {
 	}
 }
 
-//if you want change command or header ,using SetCommand or AddHeader
+// Send if you want change command or header ,using SetCommand or AddHeader
 func (req *WsHandler) Send(body string) {
-	resp := protocolNameWithVersion + " "
+	resp := types.ProtocolNameWithVersion + " "
 	if req.resp.command != "" {
-		resp = resp + req.resp.command + CRLF
+		resp = resp + req.resp.command + types.CRLF
 	} else {
-		resp = resp + req.message.command + CRLF
+		resp = resp + req.message.command + types.CRLF
 	}
 
 	if req.resp.headers != nil {
 		for k, v := range req.resp.headers {
-			resp = resp + k + ":" + v + CRLF
+			resp = resp + k + ":" + v + types.CRLF
 		}
 	} else {
 		for k, v := range req.message.headers {
-			resp = resp + k + ":" + v + CRLF
+			resp = resp + k + ":" + v + types.CRLF
 		}
 	}
-	resp += CRLF + body
+	resp += types.CRLF + body
 
 	req.resp.message = resp
 
@@ -182,31 +191,39 @@ func (req *WsHandler) Send(body string) {
 	req.resp = WsMessage{command: "", headers: nil, body: ""}
 }
 
+// HandlerCallbacks HandlerCallbacks
 type HandlerCallbacks interface {
 	OnOpen(*WsHandler)
 	OnClose(*WsHandler)
 	OnMessage(*WsHandler)
 }
 
+// BaseProcessor BaseProcessor
 type BaseProcessor struct {
 }
 
+// OnOpen OnOpen
 func (*BaseProcessor) OnOpen(*WsHandler) {
 	// log.Print("base on open")
 }
+
+// OnMessage OnMessage
 func (*BaseProcessor) OnMessage(*WsHandler) {
 	// log.Print("base on message")
 }
+
+// OnClose OnClose
 func (*BaseProcessor) OnClose(*WsHandler) {
 	// log.Print("base on close")
 }
 
+// StartServer StartServer
 func StartServer(ws *Conn) {
 	openFlag := 0
 
 	//init WsHandler,set connection and connsetid
 	wsHandler := &WsHandler{conn: ws}
-	wsHandler.subscribe_nats_conn = make(map[string]interface{}, subscribeMax)
+	wsHandler.SubscribeNatsConn = make(map[string]interface{}, types.SubscribeMax)
 
 	for {
 		var data string
@@ -216,20 +233,20 @@ func StartServer(ws *Conn) {
 			break
 		}
 		l := len(data)
-		if l <= protocolLength {
+		if l <= types.ProtocolLength {
 			//TODO how to provide other protocol
 			// log.Print("TODO provide other protocol")
 			continue
 		}
 
 		l = len(data)
-		if l > MaxLength {
+		if l > types.MaxLength {
 			//TODO how to provide other protocol
 			// log.Print("TODO provide other protocol")
 			continue
 		}
 
-		if data[:protocolLength] != protocolNameWithVersion {
+		if data[:types.ProtocolLength] != types.ProtocolNameWithVersion {
 			//TODO how to provide other protocol
 			// log.Print("TODO provide other protocol")
 			continue
