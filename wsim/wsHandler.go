@@ -17,7 +17,7 @@ type WsMessage struct {
 	//message command type
 	command string
 	//message headers
-	headers map[string]string
+	Headers map[string]string
 	//message body
 	body string
 }
@@ -27,7 +27,7 @@ func (m *WsMessage) serializeMessage() string {
 	m.message = types.ProtocolNameWithVersion + " "
 	m.message += m.command + types.CRLF
 
-	for k, v := range m.headers {
+	for k, v := range m.Headers {
 		m.message += k + ":" + v + types.CRLF
 	}
 	m.message += types.CRLF + m.body
@@ -35,12 +35,12 @@ func (m *WsMessage) serializeMessage() string {
 	return m.message
 }
 
-//parse websocket body
-func buildMessage(data string) *WsMessage {
+// BuildMessage parse websocket body
+func BuildMessage(data string) *WsMessage {
 	//TODO optimise ,to use builder pattern
 	s := data
 	message := &WsMessage{message: data}
-	message.headers = make(map[string]string, types.HeaderMax)
+	message.Headers = make(map[string]string, types.HeaderMax)
 	//parse message
 
 	//parse start line
@@ -62,7 +62,7 @@ func buildMessage(data string) *WsMessage {
 			value = headers[k:j]
 			k = j + 2
 
-			message.headers[key] = value
+			message.Headers[key] = value
 			// log.Print("parse head key:", key, " value:", value)
 			key = ""
 		}
@@ -102,7 +102,7 @@ type WsHandler struct {
 }
 
 func (req *WsHandler) reset() {
-	req.resp = WsMessage{command: "", headers: nil, body: ""}
+	req.resp = WsMessage{command: "", Headers: nil, body: ""}
 }
 
 // GetMultipart GetMultipart
@@ -127,12 +127,12 @@ func (req *WsHandler) GetCommand() string {
 
 // SetHeader SetHeader
 func (req *WsHandler) SetHeader(hkey, hvalue string) {
-	req.message.headers[hkey] = hvalue
+	req.message.Headers[hkey] = hvalue
 }
 
 // GetHeader GetHeader
 func (req *WsHandler) GetHeader(hkey string) string {
-	if value, ok := req.message.headers[hkey]; ok {
+	if value, ok := req.message.Headers[hkey]; ok {
 		return value
 	}
 	return ""
@@ -140,8 +140,8 @@ func (req *WsHandler) GetHeader(hkey string) string {
 
 // AddHeader if header already exist,update it
 func (req *WsHandler) AddHeader(hkey, hvalue string) {
-	req.resp.headers = make(map[string]string, types.HeaderMax)
-	req.resp.headers[hkey] = hvalue
+	req.resp.Headers = make(map[string]string, types.HeaderMax)
+	req.resp.Headers[hkey] = hvalue
 }
 
 // GetBody GetBody
@@ -154,8 +154,8 @@ func (req *WsHandler) setResponse() {
 	if req.resp.command == "" {
 		req.resp.command = req.message.command
 	}
-	if req.resp.headers == nil {
-		req.resp.headers = req.message.headers
+	if req.resp.Headers == nil {
+		req.resp.Headers = req.message.Headers
 	}
 	if req.resp.body == "" {
 		req.resp.body = req.message.body
@@ -171,12 +171,12 @@ func (req *WsHandler) Send(body string) {
 		resp = resp + req.message.command + types.CRLF
 	}
 
-	if req.resp.headers != nil {
-		for k, v := range req.resp.headers {
+	if req.resp.Headers != nil {
+		for k, v := range req.resp.Headers {
 			resp = resp + k + ":" + v + types.CRLF
 		}
 	} else {
-		for k, v := range req.message.headers {
+		for k, v := range req.message.Headers {
 			resp = resp + k + ":" + v + types.CRLF
 		}
 	}
@@ -188,7 +188,7 @@ func (req *WsHandler) Send(body string) {
 
 	Message.Send(req.conn, req.resp.message)
 
-	req.resp = WsMessage{command: "", headers: nil, body: ""}
+	req.resp = WsMessage{command: "", Headers: nil, body: ""}
 }
 
 // HandlerCallbacks HandlerCallbacks
@@ -252,7 +252,7 @@ func StartServer(ws *Conn) {
 			continue
 		}
 
-		wsHandler.message = buildMessage(data)
+		wsHandler.message = BuildMessage(data)
 		wsHandler.reset()
 
 		var e *list.Element

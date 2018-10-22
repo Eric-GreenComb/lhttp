@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Eric-GreenComb/ws-im-server/httphandle"
 	"github.com/Eric-GreenComb/ws-im-server/wsim"
 )
 
@@ -44,6 +45,8 @@ func (*UploadProcessor) OnMessage(ws *wsim.WsHandler) {
 }
 
 func main() {
+	httphandle.Init()
+
 	wsim.Regist("chat", &ChatProcessor{&wsim.BaseProcessor{}})
 	wsim.Regist("subpub", &SubPubProcessor{&wsim.BaseProcessor{}})
 	wsim.Regist("upstream", &UpstreamProcessor{&wsim.BaseProcessor{}})

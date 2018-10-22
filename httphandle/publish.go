@@ -1,6 +1,7 @@
-package wsim
+package httphandle
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/Eric-GreenComb/ws-im-server/mq"
 	"github.com/Eric-GreenComb/ws-im-server/types"
+	"github.com/Eric-GreenComb/ws-im-server/wsim"
 )
 
 type httpPublisher struct{}
@@ -21,9 +23,9 @@ func (*httpPublisher) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	bodyStr := string(body)
 
-	message := buildMessage(bodyStr)
+	message := wsim.BuildMessage(bodyStr)
 
-	channels, ok := message.headers[types.HeaderKeyPublish]
+	channels, ok := message.Headers[types.HeaderKeyPublish]
 	if !ok {
 		log.Print("cant get Publish header")
 		return
@@ -36,8 +38,18 @@ func (*httpPublisher) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	req.Body.Close()
 }
 
+// Init Init
+func Init() {
+
+}
+
 func init() {
 
 	//handle http publish message
 	http.Handle("/publish", &httpPublisher{})
+	http.HandleFunc("/health", indexHandler)
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "UP")
 }
