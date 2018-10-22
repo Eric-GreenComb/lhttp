@@ -1,35 +1,24 @@
-# Your star is my power!! :rocket: :star: :star: :star: :star: :star:
+# websocket im server
 
 [![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
-[![Go Report Card](https://goreportcard.com/badge/github.com/fanux/lhttp)](https://goreportcard.com/report/github.com/fanux/lhttp) [![GoDoc](https://godoc.org/github.com/fanux/lhttp?status.svg)](http://godoc.org/github.com/fanux/lhttp) 
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/avelino/awesome-go/blob/master/README.md#networking) 
 
-### Discribe
-lhttp is a http like protocol using websocket to provide long live, 
+## Discribe
+
+ws-im-server is a http like protocol using websocket to provide long live, 
 build your IM service quickly scalable without XMPP! 
 
 Everything is customizable.
 
-### [简体中文](https://github.com/fanux/lhttp/blob/master/doc/README_zh.md)
+## Features
 
-### Features
-*   simple easy but powerful!
-*   fast, publish 10000 messages using 0.04s(single-core CPU,1G memory).
-*   support cluster.
-*   easy to customize and expansion.
-*   work well with HTTP. So LHTTP can work with others language like PHP java python etc,.
+* simple easy but powerful!
+* fast, publish 10000 messages using 0.04s(single-core CPU,1G memory).
+* support cluster.
+* easy to customize and expansion.
+* work well with HTTP. So LHTTP can work with others language like PHP java python etc,.
 
-### A simple [chat room demo](https://github.com/fanux/lhttp-web-demo)
-![chat-demo](https://github.com/fanux/lhttp-web-demo/blob/master/web-demo.gif)
-with [lhttp javascript sdk](https://github.com/fanux/lhttp-javascript-sdk) we complete a simple chat room within 40 lines code!!
+## Protocol stack
 
-### SDKs 
-- [x] [javascript SDK](https://github.com/fanux/lhttp-javascript-sdk) webapp or website.
-- [ ] [c SDK](https://github.com/fanux/lhttp-c-sdk) ARM application or some c/c++ application.
-
-### [Header filter development](https://github.com/fanux/lhttp/blob/master/doc/DEVELOP.md)
-
-#### Protocol stack:
 ```go
 +--------------------+
 |       lhttp        |
@@ -40,56 +29,47 @@ with [lhttp javascript sdk](https://github.com/fanux/lhttp-javascript-sdk) we co
 +--------------------+
 ```
 
-#### Architecture
+## Architecture
+
 ```go
         +---------------------------------------+
         |    message center cluster (gnatsd)    |
         +---------------------------------------+
  ........|.................|...............|..................
-| +-------------+   +-------------+   +-------------+        | 
+| +-------------+   +-------------+   +-------------+        |
 | |lhttp server |   |lhttp server |   |lhttp server |   ...  |  lhttp server cluster
-| +-------------+   +-------------+   +-------------+        | 
+| +-------------+   +-------------+   +-------------+        |
  .....|..........._____|  |___.............|  |_________......
       |          |            |            |            |       <----using websocket link
- +--------+  +--------+   +--------+   +--------+   +--------+   
- | client |  | client |   | client |   | client |   | client |   
+ +--------+  +--------+   +--------+   +--------+   +--------+
+ | client |  | client |   | client |   | client |   | client |
  +--------+  +--------+   +--------+   +--------+   +--------+  
 ```
 
-#### Quick start
+## Quick start
+
 ```bash
 go get github.com/nats-io/nats
 go get github.com/fanux/lhttp
 ```
+
 We need run gnatsd first:
+
 ```bash
 cd bin
 ./gnatsd &
-./lhttpd 
+./lhttpd
 ```
+
 Open anohter bash run lhttpClient, then input your command:
+
 ```bash
 cd bin
 ./lhttpClient
 ```
 
-### Ship on docker
-```
-$ docker build -t lhttp:latest .
-$ docker run -p 9090:9090 -p 8081:8081 lhttp:latest
-```
-Open two windows in your browser, enter `http://localhost:9090`.
+## Protocol
 
-Lhttp server port is 8081, your own websocket client can connect to `ws://localhost:8081`
-
-Enjoy the chat...
-
-Alternative, pull image from docker hub.
-```
-$ docker run -p 9090:9090 -p 8081:8081 fanux/lhttp:latest
-```
-
-### Protocol
 ```go
 LHTTP/1.0 Command\r\n                --------start line, define command, and protocol [protocol/version] [command]\r\n
 Header1:value\r\n                    --------headers
@@ -97,7 +77,9 @@ Header2:value\r\n
 \r\n
 body                                 --------message body
 ```
+
 for example:
+
 ```go
 LHTTP/1.0 chat\r\n
 content-type:json\r\n
@@ -110,17 +92,21 @@ publish:channel_jack\r\n
     time:1990-1210 5:30:48
 }
 ```
-### Usage
- > define your processor, you need combine ```BaseProcessor```
- 
+
+## Usage
+
+> define your processor, you need combine ```BaseProcessor```
+
 ```go
 type ChatProcessor struct {
     *lhttp.BaseProcessor
 }
 ```
-if you don't like ```BaseProcessor```, define your struct witch must has ```OnOpen(*WsHandler)``` 
-```OnClose(*WsHandler)``` method
+
+if you don't like ```BaseProcessor```, define your struct witch must has ```OnOpen(*WsHandler) OnClose(*WsHandler)``` method
+
 like this:(don't recommand)
+
 ```go
 type ChatProcessor struct {
 }
@@ -140,7 +126,8 @@ func (p ChatProcessor)OnMessage(h *WsHandler) {
 ```go
 lhttp.Regist("chat",&ChatProcessor{&lhttp.BaseProcessor{}})
 ```
-**then if command is "chat" ChatProcessor will handle it** 
+
+** then if command is "chat" ChatProcessor will handle it **
 
 > define your onmessage handle
 
@@ -149,12 +136,16 @@ func (p *ChatProcessor)OnMessage(h *WsHandler) {
     h.Send(h.GetBody())
 }
 ```
-### Start websocket server
+
+## Start websocket server
+
 ```go
 http.Handler("/echo",lhttp.Handler(lhttp.StartServer))
 http.ListenAndServe(":8081")
 ```
-### Example , echo
+
+## Example , echo
+
 ```go
 type ChatProcessor struct {
     *lhttp.BaseProcessor
@@ -172,14 +163,16 @@ func main(){
     http.ListenAndServe(":8081",nil)
 }
 ```
-***
 
-### Test
+## Test
+
 open  websocketServer and run:
+
 ```bash
 cd websocketServer
 go run test.go
 ```
+
 as we can see, both of the new headers are added and new command is set by the server. 
 If we don't set a header or command ,then they will return the same result as they 
 requested. 
